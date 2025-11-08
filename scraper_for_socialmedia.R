@@ -1,31 +1,12 @@
-# ============================================================================
-# REDDIT COMMENT COLLECTION - STEP 3
-# Automated Comment Scraping
-# ============================================================================
-
-# --- 1. Install and Load Packages ---
-# You may need to run this part once if you don't have the packages
-# install.packages("httr2")
-# install.packages("jsonlite")
-# install.packages("dplyr")
-# install.packages("stringr")
-
 library(httr2)
 library(jsonlite)
 library(dplyr)
-library(stringr) # Added for str_detect
-
-# ============================================================================
-# PART 1: SETUP - Reddit API Authentication
-# ============================================================================
+library(stringr)
 
 setup_reddit_auth <- function() {
-  
-  # ⚠️ IMPORTANT: Paste your credentials here
   client_id <- "JIZa2v_WCmNm6wjSw64odg"
   client_secret <- "9ivXejeVn-BA-e7pq_WiPgls6Qn4HA"
   
-  # Check if placeholders are still there
   if (client_id == "YOUR_CLIENT_ID_HERE" || client_secret == "YOUR_CLIENT_SECRET_HERE") {
     cat("⚠️ SETUP REQUIRED:\n")
     cat("1. Go to https://www.reddit.com/prefs/apps\n")
@@ -62,10 +43,6 @@ setup_reddit_auth <- function() {
   })
 }
 
-# ============================================================================
-# PART 2: FETCH COMMENTS FROM SPECIFIC THREAD (CORRECTED)
-# ============================================================================
-
 fetch_reddit_thread_comments <- function(subreddit, post_id, access_token, 
                                          sort = "best", limit = 500) {
   cat("\nFetching comments from thread...\n")
@@ -86,14 +63,12 @@ fetch_reddit_thread_comments <- function(subreddit, post_id, access_token,
     data <- httr2::resp_body_string(response) %>%
       jsonlite::fromJSON(flatten = TRUE, simplifyVector = FALSE)
     
-    # Defensive structure handling
     if (length(data) < 2 || is.null(data[[2]]$data$children)) {
       stop("Invalid Reddit API structure or no comments returned.")
     }
     
     comments_data <- data[[2]]$data$children
     
-    # Each comment element has $data list; flatten manually
     comments_list <- lapply(comments_data, function(x) x$data)
     comments_df <- bind_rows(comments_list)
     
@@ -117,11 +92,6 @@ fetch_reddit_thread_comments <- function(subreddit, post_id, access_token,
   })
 }
 
-
-# ============================================================================
-# PART 3: FILTER FOR QUALITY COMMENTS
-# ============================================================================
-
 filter_quality_comments <- function(comments_df) {
   cat("\nFiltering comments for quality...\n")
   
@@ -141,27 +111,16 @@ filter_quality_comments <- function(comments_df) {
   return(filtered_df)
 }
 
-
-# ============================================================================
-# PART 4: MAIN EXECUTION (Simplified)
-# ============================================================================
-
 main_collection <- function() {
-  
   cat("\n=== STEP 3: REDDIT COMMENT COLLECTION ===\n")
-  
-  # Step 1: Authenticate
   cat("Step 1: Authenticating with Reddit API...\n")
   access_token <- setup_reddit_auth()
   
   if (is.null(access_token)) {
-    return(NULL) # Stop if auth fails
+    return(NULL)
   }
   
-  # Step 2: Fetch comments
   cat("\nStep 2: Fetching comments from thread...\n")
-  
-  # This is the thread from your script: "How're you using ChatGPT at work?"
   raw_comments <- fetch_reddit_thread_comments(
     subreddit = "cscareerquestions",
     post_id = "1e8pqua",
@@ -172,15 +131,10 @@ main_collection <- function() {
     cat("No comments were fetched. Exiting.\n")
     return(NULL)
   }
-  
-  # Step 3: Filter for quality
   cat("\nStep 3: Filtering for quality comments...\n")
   quality_comments <- filter_quality_comments(raw_comments)
   
-  # Step 4: Save results (Simplified)
   cat("\nStep 4: Saving results...\n")
-  
-  # Select only the comment text, as requested for the file
   final_comments_to_save <- quality_comments %>%
     select(comment_text)
   
@@ -192,13 +146,6 @@ main_collection <- function() {
   
   cat("✓ Successfully saved", nrow(final_comments_to_save), "comments to 'comments.csv'\n")
   cat("\n=== COLLECTION COMPLETE ===\n")
-  
   return(quality_comments)
 }
-
-# ============================================================================
-# EXECUTE COLLECTION
-# ============================================================================
-
-# RUN THIS:
 result <- main_collection()

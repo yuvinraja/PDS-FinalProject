@@ -1,0 +1,13 @@
+name: FinalProject
+title: FinalProject
+username: yuvinraja
+account: yuvinraja
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 16005094
+bundleId: 11149365
+url: https://yuvinraja.shinyapps.io/FinalProject/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: data_tweak.R
